@@ -32,3 +32,145 @@ https://github.com/maryayi/vue-sweet-calendar
 event calendar
 
 https://sun-22.tistory.com/66
+
+
+Add notes to the Calendar component of vant
+https://www.programmersought.com/article/44215520351/
+
+
+
+<!-- Date form -->
+<van-calendar
+     title="Calendar"
+  :poppable="false"
+  :show-confirm="false"
+  :style="{ height: '10.666667rem' }"
+  :min-date="minDate"
+  :max-date="maxDate"
+  @confirm="confirmFn"
+  :formatter="formatter"
+  :className="'van-calendar__top-info'"
+/>
+ 
+export default {
+  name: 'DoctorData',
+  data() {
+    return {
+             // doctor id
+      doctorId: '',
+             // name information
+      doctorInfo: {},
+             // clicked time
+      timeValue: '',
+             // Number of appointments and day value of doctors
+      curNums: [],
+             // minimum time value current time
+      minDate: new Date()
+    }
+  },
+  created() {
+         // Accept the data from the previous layer
+ 
+    this.doctorId = this.$route.params.doctorId
+    this.doctorInfo = this.$route.params.doctorInfo
+ 
+         // Get the number of appointments made by the doctor
+    this.getDoctorData()
+  },
+  methods: {
+         // Get the number of appointments made by the doctor
+    async getDoctorData() {
+             // Send request to get background data
+      const data = await this.$http.get(`doctorScheduleDataJson?id=${this.doctorId}&openId=123213`)
+ 
+      if (data.status !== 200) {
+                 return this.$Toast.fail('Failed to get the number of appointments for doctor layout')
+      }
+ 
+             // Take out the remaining times and the value of day
+      let b = []
+      for (let a in data.data) {
+        console.log(data.data[a].day)
+        console.log(data.data[a].cur_num)
+ 
+        b = { key: data.data[a].day, value: data.data[a].cur_num }
+        this.curNums.push(b)
+      }
+ 
+      console.log(this.curNums);  
+             // Printed format [0:{key:14,value:57},1:{key:15,value:57},2:{key:16,value:0}]  
+      
+    },
+         // Date add notes
+    formatter(day) {
+             // day of the current month
+      var date = day.date.getDate()
+ 
+      for (let i = 0; i < this.curNums.length; i++) {
+    
+                 // The current clicked day is the same
+        if (date == this.curNums[i].key) {
+ 
+                     // Determine whether the number of appointments is 0
+          if (this.curNums[i].value == 0) {
+ 
+                         // Date add notes
+                         day.topInfo ='The appointment is full'
+          } else {
+                         // Date add notes
+                         day.topInfo ='Available for appointment'
+          }
+        }
+      }
+      return day
+    },
+         // Click on any date
+    confirmFn(data) {
+      console.log(data);
+      
+      this.timeValue = this.timeFormat(data)
+ 
+      for (let i = 0; i < this.curNums.length; i++) {
+                 // If the currently clicked day is the same
+        if (this.timeValue == this.curNums[i].key) {
+ 
+                     // The number of appointments on the current date is 0, prompting the user to not jump
+          if (this.curNums[i].value == 0) {
+                         return this.$Toast.fail('The current date is full')
+          }
+ 
+          this.$router.push({
+            name: 'Registration',
+            params: {
+              data: data
+            }
+          })
+        }
+      }
+    },
+         // Time formatting 2019-09-08
+    timeFormat(time) {
+      let year = time.getFullYear()
+      let month = time.getMonth() + 1
+      let day = time.getDate()
+      return day
+    },
+  },
+  computed: {
+         // The maximum date is the current time and date + appointment time period
+    maxDate() {
+      let curDate = new Date().getTime()
+             // The number of appointment days returned in the background (7)-1 because it is not reduced by one, there will be an extra day. The number of appointment days is 7 and the page will display 8 days 
+      let one = (this.doctorInfo.bookDayNum - 1) * 24 * 3600 * 1000
+      let oneYear = curDate + one
+      return new Date(oneYear)
+    }
+  }
+}
+ 
+<style lang="less" scoped>
+ // Calendar notes
+.van-calendar__top-info {
+  background: linear-gradient(86deg, rgba(212, 165, 116, 0.98), rgba(238, 202, 163, 0.98));
+}
+</style>

@@ -96,6 +96,7 @@
       :show-confirm="false"
       :min-date="tiledMinDate"
       :max-date="tiledMaxDate"
+      :formatter="formattterFirst"
       :default-date="tiledMinDate"
       :style="{ height: '500px' }"
     />
@@ -178,6 +179,26 @@ const i18n = {
 export default {
   setup() {
     const t = useTranslate(i18n);
+    const dayFormatterFirstDay = (day: CalendarDayItem) => {
+      if (!day.date) {
+        return day;
+      }
+      const date = day.date.getDate();
+
+      if (date === 14) {
+        // day.topInfo = "예약 Tile";
+        // day.className ="van-calendar__day--possible";
+        day.className = 'van_calendar--possible';
+
+        console.log(day);
+      } else if (date === 4) {
+        day.topInfo = t('youthDay');
+      } else if (date === 11) {
+        day.text = t('today');
+      }
+
+      return day;
+    };
     const state = reactive<Record<string, any>>({
       date: {
         maxRange: [],
@@ -200,9 +221,10 @@ export default {
       maxRange: undefined,
       position: undefined,
       formatter: undefined,
+      formattterFirst: dayFormatterFirstDay,
       showConfirm: false,
       showCalendar: false,
-      tiledMinDate: new Date(2012, 0, 10),
+      tiledMinDate: new Date(2012, 1, 2),
       tiledMaxDate: new Date(2012, 2, 20),
       confirmText: undefined,
       confirmDisabledText: undefined,
@@ -233,7 +255,10 @@ export default {
 
       if (month === 5) {
         if (date === 1) {
-          day.topInfo = t('laborDay');
+          day.topInfo = '예약';
+          // day.className ="van-calendar__day--possible";
+          day.className = 'van_calendar--possible';
+          console.log(day);
         } else if (date === 4) {
           day.topInfo = t('youthDay');
         } else if (date === 11) {
@@ -333,3 +358,14 @@ export default {
   },
 };
 </script>
+
+<style lang="less" scoped>
+// Calendar notes
+.van-calendar__top-info {
+  background: linear-gradient(
+    86deg,
+    rgba(212, 165, 116, 0.98),
+    rgba(238, 202, 163, 0.98)
+  );
+}
+</style>
